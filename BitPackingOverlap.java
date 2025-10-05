@@ -1,6 +1,6 @@
 public class BitPackingOverlap implements BitPacking {
     @Override
-    public int[] compress(int[] array) {
+    public BitPackedArray compress(int[] array) {
         final int n = (array == null) ? 0 : array.length; // taille de l'array
 
         if (array == null) {
@@ -33,9 +33,7 @@ public class BitPackingOverlap implements BitPacking {
             throw new OutOfMemoryError("La sortie est trop grande");
         }
 
-        int[] out = new int[2 + words]; // Nouveau array avec 1) n, 2) k, puis le array compressé (les words)
-        out[0] = n;
-        out[1] = k;
+        int[] out = new int[words]; // Nouveau array compressé (les words)
 
         for (int i = 0; i < n; i++) {
             int start = i * k; // position de début (en bits) dans le flux
@@ -45,27 +43,68 @@ public class BitPackingOverlap implements BitPacking {
             int first = Math.min(32 - off, k); // bits qui tiennent dans le mot courant
             int rest = k - first; // bits qui débordent dans le mot suivant
 
-            // partie 1 dans out[2 + w], alignée à 'off'
-            out[2 + w] = out[2 + w] | (array[i] << off);
+            // partie 1 dans out[w], alignée à 'off'
+            out[w] = out[w] | (array[i] << off);
 
-            // partie 2 éventuelle dans out[2 + w + 1], à partir du bit 0
+            // partie 2 éventuelle dans out[w + 1], à partir du bit 0
             if (rest > 0) {
                 // ici on a déjà consommé 'first' bits, on pousse le reste
-                out[2 + w + 1] = out[2 + w + 1] | (array[i] >>> first);
+                out[w + 1] = out[w + 1] | (array[i] >>> first);
             }
         }
 
-        return out;
+        return new BitPackedArray(n, k, out, "overlap", this);
     }
 
     @Override
-    public int[] decompressed(int[] compressedArray) {
-        return new int[0];
-    }
+    public void decompress(int[] data, int k, int n, int[] output) {
+        if (data == null) {
+            throw new IllegalArgumentException("Le tableau compressé est null");
+        }
+        else if( output == null) {
+            throw new IllegalArgumentException("Le tableau de sortie ne peut pas être null");
+        }
+        else if (output.length < n) {
+            throw new IllegalArgumentException("Le tableau de sortie est trop petit: " + output.length + " < " + n);
+        }
 
+        for (int i = 0; i < n; i++) {
+            int start = i * k; // position de début (en bits) dans le flux
+            int w = start / 32; // index du mot 32 bits (start / 32)
+            int off = start % 32; // décalage dans ce mot (start % 32)
+
+            int first = Math.min(32 - off, k); // bits qui tiennent dans le mot courant
+            int rest = k - first; // bits qui débordent dans le mot suivant
+
+            // partie 1 dans data[w], alignée à 'off'
+            output[i] = (data[w] >>> off) & ((1 << first) - 1);
+
+            // partie 2 éventuelle dans data[w + 1], à partir du bit 0
+            if (rest > 0) {
+                output[i] |= (data[w + 1] & ((1 << rest) - 1)) << first;
+            }
+        }
+    }
     @Override
-    public int get(int i) {
-        return 0;
+    public int get(int[] data, int k, int n, int i) {
+        if (i < 0 || i >= n) {
+            throw new IndexOutOfBoundsException("Index hors limites: " + i);
+        }
+
+        int start = i * k;
+        int w = start / 32; 
+        int off = start % 32;
+
+        int first = Math.min(32 - off, k); 
+        int rest = k - first; 
+
+        int value = (data[w] >>> off) & ((1 << first) - 1);
+
+        if (rest > 0) {
+            value = value | (data[w + 1] & ((1 << rest) - 1)) << first;
+        }
+
+        return value;
     }
 
 }

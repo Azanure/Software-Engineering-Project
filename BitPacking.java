@@ -1,5 +1,5 @@
 public interface BitPacking {
-    int[] compress(int[] array);
-    int[] decompressed(int[] compressedArray);
-    int get(int i);
+    BitPackedArray compress(int[] array);
+    void decompress(int[] data, int k, int n, int[] output);
+    int get(int[] data, int k, int n,int i);
 }
