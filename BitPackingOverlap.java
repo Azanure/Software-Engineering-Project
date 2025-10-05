@@ -85,6 +85,7 @@ public class BitPackingOverlap implements BitPacking {
             }
         }
     }
+
     @Override
     public int get(int[] data, int k, int n, int i) {
         if (i < 0 || i >= n) {
@@ -99,12 +100,10 @@ public class BitPackingOverlap implements BitPacking {
         int rest = k - first; 
 
         int value = (data[w] >>> off) & ((1 << first) - 1);
-
         if (rest > 0) {
             value = value | (data[w + 1] & ((1 << rest) - 1)) << first;
         }
 
         return value;
     }
-
 }

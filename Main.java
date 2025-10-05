@@ -1,8 +1,8 @@
 public class Main {
     public static void main(String[] args) {
         // Test
-        int[] array = {3, 5, 7, 15, 31, 63, 127};
-        String type = "overlap"; 
+        int[] array = { 3, 5, 7, 15, 31, 63, 127 };
+        String type = "nooverlap";
         BitPacking overlap = BitPackingFactory.createBitPacking(type);
 
         // Compression
@@ -22,10 +22,10 @@ public class Main {
         }
         System.out.println();
 
-        /*
-        int indexToGet = 3; // Par exemple, obtenir le 4ème élément
-        int valueAtIndex = bitPacking.get(compressed.getData(), compressed.getK(), compressed.getSize(), indexToGet);
+        // Get
+        int indexToGet = 4;
+        int valueAtIndex = overlap.get(compressed.getData(), compressed.getBitsPerValue(), compressed.getSize(),
+                indexToGet);
         System.out.println("Value at index " + indexToGet + ": " + valueAtIndex);
-        */
     }
 }
