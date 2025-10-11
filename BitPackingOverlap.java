@@ -1,109 +1,81 @@
 public class BitPackingOverlap implements BitPacking {
     @Override
     public BitPackedArray compress(int[] array) {
-        final int n = (array == null) ? 0 : array.length; // taille de l'array
+        BitPackingUtils.ArrayInfo arrayInfo = BitPackingUtils.verifyArray(array);
+        final int n = arrayInfo.length();
+        final int bitsPerElement = arrayInfo.maxBits();
 
-        if (array == null) {
-            throw new IllegalArgumentException("Le tableau ne peut pas être null");
-        }
-
-        for (int v : array) {
-            if (v < 0) {
-                throw new IllegalArgumentException("Les valeurs négatives ne sont pas supportées");
-            }
-        }
-
-        int max = 0;
-        for (int v : array) {
-            if (v > max) {
-                max = v;
-            }
-        }
-        int k = (array.length == 0) ? 1 : Math.max(1, 32 - Integer.numberOfLeadingZeros(max));
-        if (k > 31) {
-            throw new IllegalArgumentException("La valeur maximale du tableau dépasse 31 bits soit 2^31 - 1");
-        }
-
-        int totalBits = n * k; // nombre total de bits nécessaires
-        int words = totalBits / 32; // nombre de mots 32 bits nécessaires arrondi au supérieur
+        int totalBits = n * bitsPerElement; // Nombre total de bits nécessaires
+        int words = totalBits / 32; // Nombre de cases (mots) de 32 bits nécessaires arrondi au supérieur
         if (totalBits % 32 != 0) {
             words += 1;
         }
-        if (words > Integer.MAX_VALUE - 2) {
-            throw new OutOfMemoryError("La sortie est trop grande");
-        }
 
-        int[] out = new int[words]; // Nouveau array compressé (les words)
+        int[] output = new int[words]; // Nouveau array compressé (les mots)
 
         for (int i = 0; i < n; i++) {
-            int start = i * k; // position de début (en bits) dans le flux
-            int w = start / 32; // index du mot 32 bits (start / 32)
-            int off = start % 32; // décalage dans ce mot (start % 32)
+            int start = i * bitsPerElement; // Position de début (en bits) de l'élément dans le flux de bits
+            int wordIndex = start / 32; // Index de la case de 32 bits dans le nouveau tableau
+            int off = start % 32; // Décalage (en bits) de l'élément dans cette case
 
-            int first = Math.min(32 - off, k); // bits qui tiennent dans le mot courant
-            int rest = k - first; // bits qui débordent dans le mot suivant
+            int first = Math.min(32 - off, bitsPerElement); // Nombre de bits de l'élément qui tiennent dans la case courante
+            int rest = bitsPerElement - first; // Nombre de bits de l'élément qui débordent dans la case suivante
 
-            // partie 1 dans out[w], alignée à 'off'
-            out[w] = out[w] | (array[i] << off);
+            // Partie 1 dans output[wordIndex], alignée à 'off'
+            output[wordIndex] = output[wordIndex] | (array[i] << off);
 
-            // partie 2 éventuelle dans out[w + 1], à partir du bit 0
+            // Partie 2 éventuelle dans output[wordIndex + 1], à partir du bit 0
             if (rest > 0) {
                 // ici on a déjà consommé 'first' bits, on pousse le reste
-                out[w + 1] = out[w + 1] | (array[i] >>> first);
+                output[wordIndex + 1] = output[wordIndex + 1] | (array[i] >>> first);
             }
         }
 
-        return new BitPackedArray(n, k, out, "overlap", this);
+        return new BitPackedArray(n, bitsPerElement, 0, output, BitPackedArray.compressionType.OVERLAP, this);
     }
 
     @Override
-    public void decompress(int[] data, int k, int n, int[] output) {
-        if (data == null) {
-            throw new IllegalArgumentException("Le tableau compressé est null");
-        }
-        else if( output == null) {
-            throw new IllegalArgumentException("Le tableau de sortie ne peut pas être null");
-        }
-        else if (output.length < n) {
-            throw new IllegalArgumentException("Le tableau de sortie est trop petit: " + output.length + " < " + n);
-        }
+    public void decompress(BitPackedArray packedArray, int[] output) {
+        int n = packedArray.getSize();
+        int bitsPerElement = packedArray.getBitsPerElement();
+        int[] compressedData = packedArray.getCompressedData();
 
         for (int i = 0; i < n; i++) {
-            int start = i * k; // position de début (en bits) dans le flux
-            int w = start / 32; // index du mot 32 bits (start / 32)
-            int off = start % 32; // décalage dans ce mot (start % 32)
+            int start = i * bitsPerElement; // Position de début (en bits) de l'élément dans le flux de bits
+            int wordIndex = start / 32; // Index de la case de 32 bits dans le tableau compressé
+            int off = start % 32; // Décalage (en bits) de l'élément dans cette case
 
-            int first = Math.min(32 - off, k); // bits qui tiennent dans le mot courant
-            int rest = k - first; // bits qui débordent dans le mot suivant
+            int first = Math.min(32 - off, bitsPerElement); // Nombre de bits de l'élément qui tiennent dans la case courante
+            int rest = bitsPerElement - first; // Nombre de bits de l'élément qui débordent dans la case suivante
 
-            // partie 1 dans data[w], alignée à 'off'
-            output[i] = (data[w] >>> off) & ((1 << first) - 1);
+            // Partie 1 dans compressedData[wordIndex], alignée à 'off'
+            output[i] = (compressedData[wordIndex] >>> off) & ((1 << first) - 1);
 
-            // partie 2 éventuelle dans data[w + 1], à partir du bit 0
+            // Partie 2 éventuelle dans compressedData[wordIndex + 1], à partir du bit 0
             if (rest > 0) {
-                output[i] |= (data[w + 1] & ((1 << rest) - 1)) << first;
+                output[i] |= (compressedData[wordIndex + 1] & ((1 << rest) - 1)) << first;
             }
         }
     }
 
     @Override
-    public int get(int[] data, int k, int n, int i) {
-        if (i < 0 || i >= n) {
-            throw new IndexOutOfBoundsException("Index hors limites: " + i);
-        }
+    public int get(BitPackedArray packedArray, int index) {
+        int bitsPerElement = packedArray.getBitsPerElement();
+        int[] compressedData = packedArray.getCompressedData();
 
-        int start = i * k;
-        int w = start / 32; 
+        int start = index * bitsPerElement;
+        int wordIndex = start / 32;
         int off = start % 32;
 
-        int first = Math.min(32 - off, k); 
-        int rest = k - first; 
+        // On calcule le nombre de bits qui tiennent dans la case courante et ceux qui débordent
+        int first = Math.min(32 - off, bitsPerElement);
+        int rest = bitsPerElement - first;
 
-        int value = (data[w] >>> off) & ((1 << first) - 1);
+        // On récupère les bits dans la case courante et ceux qui débordent ensuite
+        int value = (compressedData[wordIndex] >>> off) & ((1 << first) - 1);
         if (rest > 0) {
-            value = value | (data[w + 1] & ((1 << rest) - 1)) << first;
+            value = value | (compressedData[wordIndex + 1] & ((1 << rest) - 1)) << first;
         }
-
         return value;
     }
 }

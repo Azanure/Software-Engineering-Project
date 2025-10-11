@@ -1,14 +1,14 @@
 public class Main {
     public static void main(String[] args) {
         // Test
-        int[] array = { 3, 5, 7, 15, 31, 63, 127 };
+        int[] array = { 1, 2, 3, 1024, 4, 5, 2048 };
         String type = "nooverlap";
         BitPacking overlap = BitPackingFactory.createBitPacking(type);
 
         // Compression
         BitPackedArray compressed = overlap.compress(array);
         System.out.println("Compressed data: ");
-        for (int value : compressed.getData()) {
+        for (int value : compressed.getCompressedData()) {
             System.out.print(value + " ");
         }
         System.out.println();
@@ -24,8 +24,7 @@ public class Main {
 
         // Get
         int indexToGet = 4;
-        int valueAtIndex = overlap.get(compressed.getData(), compressed.getBitsPerValue(), compressed.getSize(),
-                indexToGet);
+        int valueAtIndex = overlap.get(compressed, indexToGet);
         System.out.println("Value at index " + indexToGet + ": " + valueAtIndex);
     }
 }

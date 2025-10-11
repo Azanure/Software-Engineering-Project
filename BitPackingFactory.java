@@ -1,5 +1,5 @@
 public class BitPackingFactory {
-    public static BitPacking createBitPacking(String type) { //"Static" pour pouvoir appeler la méthode sans objet
+    public static BitPacking createBitPacking(String type) {
         switch(type){
             case "overlap":
                 return new BitPackingOverlap();
