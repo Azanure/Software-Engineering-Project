@@ -478,14 +478,11 @@ public class Main {
     private static void showSessionState() {
         println(BOLD + "État courant :" + RESET);
         println("  Bitpacking actuel  : " +
-                (currentBitpackingName == null ? YELLOW + "(aucun)" + RESET
-                                               : GREEN + currentBitpackingName + RESET));
+                (currentBitpackingName == null ? YELLOW + "(aucun)" + RESET : GREEN + currentBitpackingName + RESET));
         println("  Array courant      : " +
-                (currentArray == null ? YELLOW + "(aucun)" + RESET
-                                      : GREEN + (currentArray.length + " éléments") + RESET));
+                (currentArray == null ? YELLOW + "(aucun)" + RESET : GREEN + (currentArray.length + " éléments") + RESET));
         println("  Array compressé    : " +
-                (currentPacked == null ? RED + "non" + RESET
-                                       : GREEN + "oui" + RESET));
+                (currentPacked == null ? RED + "non" + RESET : GREEN + "oui" + RESET));
         println(BLUE + "-------------------------------------------" + RESET);
     }
 
