@@ -181,7 +181,7 @@ public class BitPackingOverflow implements BitPacking {
             int overflowCost = nOverflow * maxBits; // Coût total de la partie overflow en bits (chacun de ces nombres sera compressé forcement sur maxBits bits)
             int totalCost = n * bitsPerElement + overflowCost; // Coût total en bits (= coût de la partie principale + coût de la partie overflow)
 
-            System.out.printf("k=%d | indexBits=%d | bitsPerElement=%d | nOverflow=%d | nPrincipal=%d | maxBits=%d | totalCost=%d%n", k, indexBits, bitsPerElement, nOverflow, n-nOverflow, maxBits, totalCost); //debug
+            //System.out.printf("k=%d | indexBits=%d | bitsPerElement=%d | nOverflow=%d | nPrincipal=%d | maxBits=%d | totalCost=%d%n", k, indexBits, bitsPerElement, nOverflow, n-nOverflow, maxBits, totalCost); //debug
 
             // Mise à jour des meilleurs résultats si nécessaire
             if (totalCost < bestTotalCost) {
@@ -190,7 +190,7 @@ public class BitPackingOverflow implements BitPacking {
                 bestBitsPerElement = bitsPerElement;
             }
         }
-        System.out.println("=> Best k = " + bestK + " (cost = " + bestTotalCost + ")"); //debug
+        //System.out.println("=> Best k = " + bestK + " (cost = " + bestTotalCost + ")"); //debug
         return new BestKResult(bestK, bestTotalCost, bestBitsPerElement, maxBits);
     }
 }
