@@ -20,7 +20,7 @@ public class Main {
 
     // Paramètres benchmark par défaut
     private static final int DEFAULT_WARMUP = 3;
-    private static final int DEFAULT_RUNS = 5;
+    private static final int DEFAULT_RUNS = 100;
 
     public static void main(String[] args) {
         try (Scanner sc = new Scanner(System.in)) {
