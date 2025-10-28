@@ -30,8 +30,6 @@ Chaque version implémente les fonctions :
 - decompress(int[] data, int k, int n, int[] output) — décompresse les données  
 - get(int[] data, int k, int n, int i) — permet d’accéder directement à l’élément i du tableau original  
 
----
-
 ### 2. Bit Packing avec zone de débordement (Overflow)
 Implémenté dans BitPackingOverflow.java.  
 Cette méthode optimise la compression lorsque certains entiers nécessitent beaucoup plus de bits que les autres.  
@@ -41,8 +39,6 @@ Le principe :
 - Un bit indicateur signale si la valeur est stockée directement ou dans la zone de débordement  
 
 Cette approche réduit fortement la taille globale du tableau lorsque peu de valeurs sont extrêmes.
-
----
 
 ### 3. Fabrique (Factory Design Pattern)
 Implémentée dans BitPackingFactory.java, elle permet de créer facilement la variante de compression souhaitée.  
@@ -54,15 +50,11 @@ Les options disponibles sont :
 - "overlap"
 - "overflow"
 
----
-
 ### 4. Fonctions utilitaires
 Le fichier BitPackingUtils.java contient diverses fonctions d’aide :
 - Manipulation de bits (masques, décalages, opérations logiques)
 - Calcul du nombre minimal de bits k nécessaires pour représenter les valeurs
 - Outils de mesure de temps d’exécution pour les benchmarks
-
----
 
 ### 5. Mesures de performance et benchmark
 Le fichier Main.java met en œuvre un protocole complet de mesure des temps d’exécution :
@@ -176,20 +168,6 @@ Le protocole vise à mesurer de façon fiable le temps d’exécution de chaque 
 
 ---
 
-## Exemple : Encodage Overflow
-
-Soit les valeurs :
-[1, 2, 3, 1024, 4, 5, 2048]  
-
-- Les valeurs normales (1, 2, 3, 4, 5) utilisent 3 bits  
-- Les valeurs 1024 et 2048 sont placées dans la zone de débordement sur 11 bits  
-- On encode alors dans un tableau :  
-  0-1, 0-2, 0-3, 1-0, 0-4, 0-5, 1-1, 1024, 2048  
-
-Le premier bit (0 ou 1) indique si la valeur est dans le tableau principal ou dans la zone de débordement.
-
----
-
 ## Structure du projet
 
 BitPackedArray.java                    → Structure contenant le tableau compressé et ses métadonnées  
@@ -217,10 +195,4 @@ Software Engineering Project 2025.txt  → Cahier des charges du projet
 
 - Code source : tous les fichiers .java  
 - README.md : guide d’utilisation et documentation (ce fichier)  
-- Rapport PDF : explications, conception, benchmarks et résultats  
-
----
-
-========================================================
-               FIN DE LA DOCUMENTATION
-========================================================
+- Rapport PDF : explications, conception, benchmarks et résultats
